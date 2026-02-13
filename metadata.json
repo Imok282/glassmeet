@@ -1,0 +1,8 @@
+{
+  "name": "GlassMeet",
+  "description": "Premium macOS-style video conferencing application with Liquid Glass UI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

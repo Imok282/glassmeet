@@ -1,0 +1,79 @@
+
+/* Custom Styles - Tailwind is now loaded via CDN in index.html */
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #0f0205; /* Deep luxury dark */
+  font-family: 'Instrument Sans', sans-serif;
+  color: #fff0f3;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Premium Glass Panel - Optimized blur */
+.glass-panel {
+  background: rgba(20, 5, 10, 0.6); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+}
+
+/* Lighter glass for active elements */
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -5px rgba(255, 77, 115, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.glass-input:focus {
+  outline: none;
+  border-color: rgba(255, 77, 115, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 4px rgba(255, 77, 115, 0.1);
+}
+
+.text-glow {
+  text-shadow: 0 0 30px rgba(255, 77, 115, 0.3);
+}

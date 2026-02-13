@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GlassMeet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Restore Tailwind CDN for reliable styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Instrument Sans', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+            },
+            colors: {
+              rose: {
+                50: '#fff0f3',
+                100: '#ffe3e8',
+                200: '#ffcdd9',
+                300: '#ffaebf',
+                400: '#ff849d',
+                500: '#ff4d73',
+                600: '#e82a56',
+                800: '#a61334',
+                900: '#8c1232',
+                950: '#4f0417',
+              },
+            },
+            animation: {
+              'fade-in': 'fadeIn 1s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <script type="importmap">
+{
+  "imports": {
+    "mongoose": "https://esm.sh/mongoose@^9.2.1",
+    "path": "https://esm.sh/path@^0.12.7",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "express": "https://esm.sh/express@^5.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0",
+    "http": "https://esm.sh/http@^0.0.1-security",
+    "socket.io-client": "https://esm.sh/socket.io-client@^4.8.3",
+    "zustand": "https://esm.sh/zustand@^5.0.11",
+    "cors": "https://esm.sh/cors@^2.8.6",
+    "socket.io": "https://esm.sh/socket.io@^4.8.3",
+    "dotenv/": "https://esm.sh/dotenv@^17.3.1/",
+    "url": "https://esm.sh/url@^0.11.4"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
