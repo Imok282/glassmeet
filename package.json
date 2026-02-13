@@ -8,7 +8,7 @@
     "build": "vite build",
     "start": "node dist-server/index.js",
     "build:server": "tsc -p server/tsconfig.server.json",
-    "build:full": "npm install && npm run build && npm run build:server",
+    "build:full": "rm -rf dist dist-server && npm install && npm run build && npm run build:server",
     "prod": "npm run build:full && npm start"
   },
   "dependencies": {

@@ -1,13 +1,14 @@
-
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "rootDir": "./",
     "outDir": "../dist-server",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["./**/*"]
 }
