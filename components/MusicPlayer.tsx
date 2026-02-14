@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Disc, X, Volume2, Music } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Disc, X, Volume2, Music, RefreshCw } from 'lucide-react';
 import { useStore } from '../store';
 import { socket } from '../utils/socket';
 
@@ -15,12 +15,16 @@ export const MusicPlayer = () => {
   const { isMusicOpen, toggleMusic, currentTrackIndex, isPlaying, setMusicState, roomId } = useStore();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [volume, setVolume] = useState(0.5);
+  const [syncWarning, setSyncWarning] = useState(false);
 
   // Sync Audio Element with Global State
   useEffect(() => {
     if (audioRef.current) {
         if (isPlaying) {
-            audioRef.current.play().catch(e => console.log("Autoplay prevented", e));
+            audioRef.current.play().catch(e => {
+                console.log("Autoplay prevented", e);
+                setSyncWarning(true);
+            });
         } else {
             audioRef.current.pause();
         }
@@ -31,17 +35,23 @@ export const MusicPlayer = () => {
   useEffect(() => {
     const handleSync = (data: { trackIndex: number, isPlaying: boolean, timestamp: number }) => {
         if (audioRef.current) {
+            // Force track change if needed
+            if (data.trackIndex !== currentTrackIndex) {
+                 setMusicState(data.trackIndex, data.isPlaying);
+            }
+            
             // Only seek if difference is > 2 seconds to prevent jitter
             if (Math.abs(audioRef.current.currentTime - data.timestamp) > 2) {
                 audioRef.current.currentTime = data.timestamp;
             }
         }
         setMusicState(data.trackIndex, data.isPlaying);
+        setSyncWarning(false);
     };
 
     socket.on('sync-music', handleSync);
     return () => { socket.off('sync-music', handleSync); };
-  }, [setMusicState]);
+  }, [setMusicState, currentTrackIndex]);
 
   const emitSync = (playing: boolean, index: number) => {
     const timestamp = audioRef.current ? audioRef.current.currentTime : 0;
@@ -69,6 +79,14 @@ export const MusicPlayer = () => {
     const newIndex = (currentTrackIndex - 1 + TRACKS.length) % TRACKS.length;
     setMusicState(newIndex, true);
     emitSync(true, newIndex);
+  };
+
+  const forceSync = () => {
+      if (audioRef.current) {
+          audioRef.current.play();
+          setSyncWarning(false);
+          emitSync(isPlaying, currentTrackIndex);
+      }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +147,17 @@ export const MusicPlayer = () => {
                     <h3 className="text-rose-950 font-serif font-bold text-xl truncate">{TRACKS[currentTrackIndex].title}</h3>
                     <p className="text-rose-500 text-sm">{TRACKS[currentTrackIndex].artist}</p>
                 </div>
+
+                {/* Sync Warning */}
+                {syncWarning && (
+                    <motion.button 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        onClick={forceSync}
+                        className="w-full mb-4 py-2 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-200 flex items-center justify-center gap-2"
+                    >
+                        <RefreshCw size={12} className="animate-spin" /> CLICK TO RESYNC AUDIO
+                    </motion.button>
+                )}
 
                 {/* Controls */}
                 <div className="flex justify-center items-center gap-6 mb-6">
