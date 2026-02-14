@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { User, ChatMessage, PeerState, DirectMessage, LoveLetter } from './types';
 
@@ -7,7 +6,7 @@ interface AppState {
   currentUser: User | null;
   setCurrentUser: (user: User) => void;
   
-  // LDR Specific: Hand Holding (Replaces Hand Raise)
+  // LDR Specific: Hand Holding
   isHoldingHands: boolean;
   toggleHandHold: () => void;
 
@@ -16,12 +15,17 @@ interface AppState {
   setRoomId: (id: string | null) => void;
   isJoined: boolean;
   setIsJoined: (joined: boolean) => void;
+  sharingUserId: string | null; // ID of the user currently sharing screen
+  setSharingUserId: (id: string | null) => void;
+
+  // Online Cursors
+  peerCursors: Record<string, { x: number, y: number, username: string }>;
+  updatePeerCursor: (userId: string, data: { x: number, y: number, username: string } | null) => void;
 
   // Contacts & Direct Messages
   onlineUsers: User[];
   setOnlineUsers: (users: User[]) => void;
   
-  // Key is the OTHER user's USERNAME (Persistent ID)
   directMessages: Record<string, DirectMessage[]>; 
   addDirectMessage: (otherUsername: string, msg: DirectMessage) => void;
   
@@ -50,62 +54,51 @@ interface AppState {
   isWhiteboardOpen: boolean;
   toggleWhiteboard: () => void;
   
-  // NEW: Love Notes (Shared Scratchpad)
   isNoteOpen: boolean;
   toggleNote: () => void;
   noteContent: string;
   setNoteContent: (content: string) => void;
 
-  // NEW: Love Letters (Persistent Long-form)
   isLetterBoxOpen: boolean;
   toggleLetterBox: () => void;
   letters: LoveLetter[];
   addLetter: (letter: LoveLetter) => void;
   markLetterAsRead: (id: string) => void;
 
-  // NEW: Deep Talk
   isQuestionDeckOpen: boolean;
   toggleQuestionDeck: () => void;
   activeQuestion: string | null;
   setActiveQuestion: (q: string | null) => void;
   
-  // LDR Features
   isSleepMode: boolean;
   toggleSleepMode: () => void;
   
-  // NEW: Date Mode
   isDateMode: boolean;
   toggleDateMode: () => void;
 
-  // NEW: Stargazing Mode
   isStargazingOpen: boolean;
   toggleStargazing: () => void;
   
-  // NEW: Breathing Exercise
   isBreathingActive: boolean;
   toggleBreathing: () => void;
 
   lastTouch: { x: number, y: number, id: string } | null;
   setLastTouch: (touch: { x: number, y: number, id: string } | null) => void;
   
-  // Shared Music State
   isMusicOpen: boolean;
   toggleMusic: () => void;
   currentTrackIndex: number;
   isPlaying: boolean;
   setMusicState: (index: number, playing: boolean) => void;
 
-  // Countdown State
   meetingDate: string | null;
   setMeetingDate: (date: string | null) => void;
   isCountdownOpen: boolean;
   toggleCountdown: () => void;
 
-  // Ghost Mode (Panic Button)
   isGhostMode: boolean;
   setGhostMode: (active: boolean) => void;
 
-  // Peers & Chat
   peers: Record<string, PeerState>;
   addPeer: (id: string, peerState: PeerState) => void;
   removePeer: (id: string) => void;
@@ -115,11 +108,9 @@ interface AppState {
   addMessage: (msg: ChatMessage) => void;
   markMessageAsRead: (messageId: string, userId: string) => void;
   
-  // Typing Indicators
   typingUsers: string[];
   setTypingUser: (username: string, isTyping: boolean) => void;
 
-  // Reactions & Kisses
   activeReactions: { id: string, emoji: string, startX: number }[];
   activeKisses: { id: string, startX: number, startY: number, rotation: number }[];
   addReaction: (emoji: string) => void;
@@ -139,8 +130,17 @@ export const useStore = create<AppState>((set) => ({
   setRoomId: (id) => set({ roomId: id }),
   isJoined: false,
   setIsJoined: (joined) => set({ isJoined: joined }),
+  sharingUserId: null,
+  setSharingUserId: (id) => set({ sharingUserId: id }),
 
-  // Contacts
+  peerCursors: {},
+  updatePeerCursor: (userId, data) => set((state) => {
+    const newCursors = { ...state.peerCursors };
+    if (!data) delete newCursors[userId];
+    else newCursors[userId] = data;
+    return { peerCursors: newCursors };
+  }),
+
   onlineUsers: [],
   setOnlineUsers: (users) => set({ onlineUsers: users }),
   directMessages: {},
@@ -172,26 +172,22 @@ export const useStore = create<AppState>((set) => ({
   isWhiteboardOpen: false,
   toggleWhiteboard: () => set((state) => ({ isWhiteboardOpen: !state.isWhiteboardOpen })),
 
-  // Notes
   isNoteOpen: false,
   toggleNote: () => set((state) => ({ isNoteOpen: !state.isNoteOpen })),
   noteContent: '',
   setNoteContent: (content) => set({ noteContent: content }),
 
-  // Letters
   isLetterBoxOpen: false,
   toggleLetterBox: () => set((state) => ({ isLetterBoxOpen: !state.isLetterBoxOpen })),
   letters: [],
   addLetter: (letter) => set((state) => {
-    // Avoid duplicates
     if (state.letters.some(l => l.id === letter.id)) return state;
-    return { letters: [letter, ...state.letters] }; // Newest first
+    return { letters: [letter, ...state.letters] };
   }),
   markLetterAsRead: (id) => set((state) => ({
     letters: state.letters.map(l => l.id === id ? { ...l, isRead: true } : l)
   })),
 
-  // Questions
   isQuestionDeckOpen: false,
   toggleQuestionDeck: () => set((state) => ({ isQuestionDeckOpen: !state.isQuestionDeckOpen })),
   activeQuestion: null,
@@ -212,14 +208,12 @@ export const useStore = create<AppState>((set) => ({
   lastTouch: null,
   setLastTouch: (touch) => set({ lastTouch: touch }),
 
-  // Music
   isMusicOpen: false,
   toggleMusic: () => set((state) => ({ isMusicOpen: !state.isMusicOpen })),
   currentTrackIndex: 0,
   isPlaying: false,
   setMusicState: (index, playing) => set({ currentTrackIndex: index, isPlaying: playing }),
 
-  // Countdown
   meetingDate: localStorage.getItem('glassmeet_meeting_date'),
   setMeetingDate: (date) => {
     if (date) localStorage.setItem('glassmeet_meeting_date', date);
@@ -273,7 +267,7 @@ export const useStore = create<AppState>((set) => ({
       activeReactions: [...state.activeReactions, { 
           id: Math.random().toString(36), 
           emoji, 
-          startX: Math.random() * 80 + 10 // 10% to 90% width
+          startX: Math.random() * 80 + 10 
       }]
   })),
   removeReaction: (id) => set((state) => ({
@@ -282,7 +276,7 @@ export const useStore = create<AppState>((set) => ({
   addKiss: () => set((state) => ({
     activeKisses: [...state.activeKisses, {
         id: Math.random().toString(36),
-        startX: 50, // Starts center
+        startX: 50,
         startY: 50,
         rotation: Math.random() * 30 - 15
     }]
