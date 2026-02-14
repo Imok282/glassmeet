@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "node dist-server/index.js",
     "build:server": "tsc -p server/tsconfig.server.json",
     "build:full": "rm -rf dist dist-server && npm install && npx vite build && npx tsc -p server/tsconfig.server.json",
+    "start": "node dist-server/index.js",
     "prod": "npm run build:full && npm start"
   },
   "dependencies": {
