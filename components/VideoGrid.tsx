@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store';
-import { Mic, MicOff, VideoOff, Clapperboard, Hand, EyeOff } from 'lucide-react';
+import { Mic, MicOff, VideoOff, Clapperboard, Hand, EyeOff, Maximize2, Users, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../utils/socket';
 
@@ -14,7 +14,8 @@ const VideoPlayer: React.FC<{
     isCinemaMode?: boolean;
     isHandRaised?: boolean;
     isGhostMode?: boolean;
-}> = ({ stream, isMuted, label, isSpeaking, isVideoOff, isMirrored, isCinemaMode, isHandRaised, isGhostMode }) => {
+    compact?: boolean;
+}> = ({ stream, isMuted, label, isSpeaking, isVideoOff, isMirrored, isCinemaMode, isHandRaised, isGhostMode, compact }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -29,19 +30,21 @@ const VideoPlayer: React.FC<{
   return (
     <div className={`relative w-full h-full overflow-hidden transition-all duration-700 pointer-events-none select-none
       ${isCinemaMode 
-          ? 'bg-black rounded-lg border border-white/10 shadow-2xl' 
-          : 'rounded-[2rem] glass-panel-light border border-white/10 shadow-lg'}
-      ${isSpeaking && !isCinemaMode && !isGhostMode ? 'ring-1 ring-rose-400/50' : ''}
-      ${isHandRaised ? 'ring-2 ring-amber-300 shadow-[0_0_30px_rgba(252,211,77,0.3)]' : ''}
+          ? 'bg-black shadow-[0_0_100px_rgba(0,0,0,1)]' 
+          : compact 
+            ? 'rounded-2xl glass-panel-light border border-white/10 shadow-lg'
+            : 'rounded-[2.5rem] glass-panel-light border border-white/10 shadow-2xl'}
+      ${isSpeaking && !isCinemaMode && !isGhostMode ? 'ring-2 ring-rose-500/40 shadow-[0_0_20px_rgba(244,63,94,0.3)]' : ''}
+      ${isHandRaised ? 'ring-2 ring-amber-400 shadow-[0_0_30px_rgba(252,211,77,0.4)]' : ''}
     `}>
       {effectivelyVideoOff ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#050102]">
+        <div className="absolute inset-0 flex items-center justify-center bg-[#080405]">
            {isGhostMode ? (
-              <div className="flex flex-col items-center gap-3 text-white/20">
-                  <EyeOff size={32} />
+              <div className="flex flex-col items-center gap-3 text-white/10">
+                  <EyeOff size={compact ? 20 : 32} />
               </div>
            ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-rose-900/40 to-black flex items-center justify-center text-4xl font-serif text-white/50 border border-white/5 animate-[pulse_4s_ease-in-out_infinite]">
+              <div className={`${compact ? 'w-12 h-12 text-lg' : 'w-24 h-24 text-4xl'} rounded-full bg-gradient-to-tr from-rose-950 to-stone-900 flex items-center justify-center font-serif text-white/50 border border-white/5 animate-[pulse_4s_ease-in-out_infinite]`}>
                   {label.charAt(0).toUpperCase()}
               </div>
            )}
@@ -53,204 +56,168 @@ const VideoPlayer: React.FC<{
               autoPlay
               playsInline
               muted={effectivelyMuted}
-              className={`w-full h-full ${isCinemaMode ? 'object-contain' : 'object-cover'} ${isMirrored ? 'scale-x-[-1]' : ''} transition-transform duration-[2s] ease-out group-hover:scale-105`}
+              className={`w-full h-full ${isCinemaMode ? 'object-contain' : 'object-cover'} ${isMirrored ? 'scale-x-[-1]' : ''} transition-transform duration-[2s] ease-out`}
             />
-            
-            {/* Cinematic Overlays */}
-            {isCinemaMode ? (
-                <>
-                    {/* Vignette - darkening corners for focus */}
-                    <div className="absolute inset-0 pointer-events-none z-20 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.5)_100%)]"></div>
-                    
-                    {/* Static Film Grain - subtle texture */}
-                    <div 
-                        className="absolute inset-0 pointer-events-none z-10 opacity-[0.12] mix-blend-overlay"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-                        }}
-                    ></div>
-                </>
-            ) : (
-                /* Simple Overlay for non-cinema mode */
-                <div className="absolute inset-0 pointer-events-none z-10 bg-black/10"></div>
-            )}
-            
-            {/* Warm Golden Tint when holding hands */}
-            {isHandRaised && (
-                <div className="absolute inset-0 z-20 bg-amber-500/10 mix-blend-soft-light pointer-events-none transition-opacity duration-1000"></div>
+            {isCinemaMode && (
+                <div className="absolute inset-0 pointer-events-none z-20 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.8)_100%)] shadow-[inset_0_0_150px_rgba(0,0,0,1)]"></div>
             )}
         </div>
       )}
       
-      {/* Hand/Heart Indicator */}
       <AnimatePresence>
         {isHandRaised && !isGhostMode && (
             <motion.div 
-                initial={{ scale: 0, y: 10 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0, y: 10 }}
-                className="absolute top-6 right-6 z-30 flex items-center gap-2"
+                initial={{ scale: 0, x: 10, opacity: 0 }}
+                animate={{ scale: 1.2, x: 0, opacity: 1 }}
+                exit={{ scale: 0, x: 10, opacity: 0 }}
+                className={`absolute top-4 right-4 z-30 flex items-center gap-2`}
             >
-                <div className="bg-amber-400/20 backdrop-blur-md p-2 rounded-full border border-amber-400/30 text-amber-200">
-                    <Hand size={16} fill="currentColor" />
+                <div className={`${compact ? 'p-1.5' : 'p-3'} bg-amber-400 text-black rounded-full shadow-[0_0_20px_rgba(251,191,36,0.6)]`}>
+                    <Hand size={compact ? 14 : 20} fill="currentColor" />
                 </div>
-                <span className="text-[10px] font-bold text-amber-200 uppercase tracking-widest bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Holding Hands</span>
             </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Name Tag - Minimalist */}
-      <div className={`absolute bottom-6 left-6 px-4 py-2 rounded-full flex items-center space-x-2 bg-black/40 backdrop-blur-md transition-opacity duration-300 z-20 border border-white/5 ${isCinemaMode ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
-        <span className="text-white/90 text-xs font-medium tracking-wide">{label}</span>
+      <div className={`absolute bottom-4 left-4 px-3 py-1.5 rounded-full flex items-center space-x-2 bg-black/60 backdrop-blur-xl border border-white/10 z-20 transition-opacity duration-500 ${isCinemaMode ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+        <span className={`text-white/90 ${compact ? 'text-[10px]' : 'text-xs'} font-medium tracking-wide truncate max-w-[120px]`}>{label}</span>
+        {isSpeaking && !isGhostMode && (
+            <div className="flex gap-0.5">
+                {[1,2,3].map(i => (
+                    <motion.div 
+                        key={i}
+                        animate={{ height: [4, 10, 4] }}
+                        transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
+                        className="w-0.5 bg-rose-400 rounded-full"
+                    />
+                ))}
+            </div>
+        )}
       </div>
     </div>
   );
 };
 
 export const VideoGrid = () => {
-  const { localStream, peers, currentUser, isCameraOn, isScreenSharing, isGhostMode, roomId, addKiss, activeKisses, removeKiss, isHoldingHands } = useStore();
+  const { localStream, peers, currentUser, isCameraOn, isScreenSharing, sharingUserId, isGhostMode, roomId, activeKisses, removeKiss, isHoldingHands } = useStore();
   const peerIds = Object.keys(peers);
   
-  const [ripples, setRipples] = useState<{ id: string, x: number, y: number }[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!currentUser || !roomId) return;
+    socket.emit('mouse-move', {
+      roomId,
+      userId: currentUser.id,
+      username: currentUser.username,
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight
+    });
+  };
 
-  useEffect(() => {
-    const handleTouch = (data: { x: number, y: number, user: any }) => {
-        const id = Date.now().toString() + Math.random();
-        setRipples(prev => [...prev, { id, x: data.x, y: data.y }]);
-        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 2000);
-    };
-
-    const handleKiss = () => addKiss();
-
-    socket.on('touch-surface', handleTouch);
-    socket.on('receive-kiss', handleKiss);
-
-    return () => {
-        socket.off('touch-surface', handleTouch);
-        socket.off('receive-kiss', handleKiss);
-    };
-  }, [currentUser, addKiss]);
-
-  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!containerRef.current || !currentUser) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      socket.emit('touch-surface', { roomId, x, y, user: currentUser });
+  const handleContainerClick = (e: React.MouseEvent) => {
+      if (!currentUser || !roomId) return;
+      socket.emit('touch-surface', {
+          roomId,
+          user: currentUser,
+          x: e.clientX / window.innerWidth,
+          y: e.clientY / window.innerHeight
+      });
   };
   
   const totalUsers = peerIds.length + 1;
-  const gridCols = totalUsers === 1 ? 'grid-cols-1' : totalUsers <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+  const anyoneSharing = sharingUserId !== null;
+  const sharerStream = sharingUserId === currentUser?.id ? localStream : (sharingUserId ? peers[sharingUserId]?.stream : null);
 
-  if (isScreenSharing) {
+  // TRUE CINEMATIC STAGE MODE (Full Screen Priority)
+  if (anyoneSharing) {
       return (
-        <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-4 relative z-10">
-            <motion.div 
-                layoutId="shared-screen"
-                className="w-full max-w-[90%] h-[75%] relative group"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-            >
+        <div onMouseMove={handleMouseMove} onClick={handleContainerClick} className="fixed inset-0 z-10 flex bg-black cursor-none overflow-hidden">
+            {/* The Main Stage */}
+            <div className="flex-1 relative h-full flex items-center justify-center">
                 <VideoPlayer 
-                    stream={localStream} 
-                    isMuted={true} 
-                    label="Now Showing" 
+                    stream={sharerStream || null} 
+                    isMuted={sharingUserId === currentUser?.id} 
+                    label={sharingUserId === currentUser?.id ? "Your Presentation" : `${peers[sharingUserId || '']?.user.username}'s Presentation`} 
                     isSpeaking={false} 
                     isVideoOff={false}
                     isMirrored={false}
                     isCinemaMode={true}
-                    isHandRaised={false}
                     isGhostMode={isGhostMode}
                 />
-            </motion.div>
+                
+                {/* Visual Status Indicator */}
+                <div className="absolute top-10 left-10 flex items-center gap-3 bg-rose-600/20 backdrop-blur-3xl px-6 py-4 rounded-3xl border border-rose-500/30 opacity-80 z-30 pointer-events-none">
+                    <Monitor className="text-rose-400 animate-pulse" size={20} />
+                    <span className="text-white text-sm font-bold tracking-widest uppercase">Live Cinema Mode</span>
+                </div>
+            </div>
+
+            {/* macOS Floating Sidebar for Participants */}
+            <div className="w-72 h-full bg-[#050102]/80 backdrop-blur-3xl border-l border-white/5 p-8 flex flex-col gap-6 overflow-y-auto">
+                <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-2 px-1 flex items-center gap-2">
+                    <Users size={12} /> Participants
+                </div>
+                
+                {/* Local User */}
+                <div className="aspect-video w-full flex-shrink-0 relative group">
+                    <VideoPlayer stream={localStream} isMuted={true} label="You" isSpeaking={false} isVideoOff={!isCameraOn} isMirrored={!isScreenSharing} isHandRaised={isHoldingHands} isGhostMode={isGhostMode} compact={true} />
+                </div>
+                
+                {/* Remote Peers */}
+                {peerIds.filter(id => id !== sharingUserId).map((id) => (
+                    <div key={id} className="aspect-video w-full flex-shrink-0">
+                        <VideoPlayer stream={peers[id].stream || null} label={peers[id].user.username} isSpeaking={peers[id].isSpeaking} isVideoOff={peers[id].isVideoOff} isMuted={false} isMirrored={false} isHandRaised={peers[id].isHandRaised} isGhostMode={isGhostMode} compact={true} />
+                    </div>
+                ))}
+            </div>
+
+            {/* Global Interaction Layer (Mirrored Kisses) */}
+            <div className="absolute inset-0 pointer-events-none z-[60]">
+                 <AnimatePresence>
+                    {activeKisses.map(k => (
+                        <motion.div 
+                          key={k.id} 
+                          initial={{ opacity: 0, scale: 0.5, y: 100 }} 
+                          animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 3, 3, 5], x: [0, -60, 60, 0], y: [100, -200] }} 
+                          transition={{ duration: 4.5, ease: "easeOut" }} 
+                          onAnimationComplete={() => removeKiss(k.id)} 
+                          className="absolute inset-0 flex items-center justify-center text-[15rem] filter drop-shadow-[0_0_100px_rgba(244,63,94,0.7)]"
+                        >
+                            💋
+                        </motion.div>
+                    ))}
+                 </AnimatePresence>
+            </div>
         </div>
       );
   }
 
+  // STANDARD GRID MODE
+  const gridCols = totalUsers === 1 ? 'grid-cols-1' : totalUsers === 2 ? 'grid-cols-2' : totalUsers <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+
   return (
-    <div 
-        ref={containerRef}
-        onClick={handleContainerClick}
-        className={`flex-1 p-12 grid gap-12 ${gridCols} content-center max-w-[100rem] mx-auto w-full h-full relative cursor-pointer`}
-    >
-        {/* Kiss Layer */}
+    <div onMouseMove={handleMouseMove} onClick={handleContainerClick} className={`flex-1 p-8 md:p-16 grid gap-8 md:gap-12 ${gridCols} content-center max-w-[110rem] mx-auto w-full h-full relative cursor-none`}>
         <div className="absolute inset-0 pointer-events-none z-[60]">
              <AnimatePresence>
                 {activeKisses.map(k => (
-                    <motion.div
-                        key={k.id}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ 
-                            opacity: [0, 1, 1, 0], 
-                            scale: [0.5, 2, 2.5, 3], 
-                            x: [0, -20, 20, 0], 
-                            y: [0, -50] 
-                        }}
-                        transition={{ duration: 3, ease: "easeOut" }}
-                        onAnimationComplete={() => removeKiss(k.id)}
-                        className="absolute inset-0 flex items-center justify-center text-[8rem] filter drop-shadow-[0_0_50px_rgba(244,63,94,0.4)]"
+                    <motion.div 
+                      key={k.id} 
+                      initial={{ opacity: 0, scale: 0.5 }} 
+                      animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 2.5, 2.5, 4], x: [0, -40, 40, 0], y: [0, -100] }} 
+                      transition={{ duration: 3.5, ease: "easeOut" }} 
+                      onAnimationComplete={() => removeKiss(k.id)} 
+                      className="absolute inset-0 flex items-center justify-center text-[12rem] filter drop-shadow-[0_0_60px_rgba(244,63,94,0.6)]"
                     >
                         💋
                     </motion.div>
                 ))}
              </AnimatePresence>
         </div>
-
-        {/* Liquid Glass Ripples */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-50">
-            <AnimatePresence>
-                {ripples.map(ripple => (
-                    <motion.div
-                        key={ripple.id}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 2.5, opacity: 1 }}
-                        exit={{ opacity: 0, scale: 3 }}
-                        transition={{ duration: 2, ease: "easeOut" }}
-                        className="absolute rounded-full"
-                        style={{
-                            left: `${ripple.x * 100}%`,
-                            top: `${ripple.y * 100}%`,
-                            width: '120px',
-                            height: '120px',
-                            transform: 'translate(-50%, -50%)',
-                            // Glass-like refraction effect using backdrop-filter
-                            backdropFilter: 'blur(4px) brightness(1.2)',
-                            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%)',
-                            boxShadow: 'inset 0 0 20px rgba(255,255,255,0.2), 0 0 10px rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.15)'
-                        }}
-                    />
-                ))}
-            </AnimatePresence>
-        </div>
-
-      <motion.div layout className="aspect-video relative shadow-2xl pointer-events-none">
-        <VideoPlayer 
-            stream={localStream} 
-            isMuted={true} 
-            label="You"
-            isSpeaking={false} 
-            isVideoOff={!isCameraOn && !isScreenSharing}
-            isMirrored={!isScreenSharing} 
-            isHandRaised={isHoldingHands} // Use local state
-            isGhostMode={isGhostMode}
-        />
+      <motion.div layout className={`aspect-video relative shadow-2xl transition-all duration-700 ${totalUsers === 1 ? 'max-w-4xl mx-auto w-full' : ''}`}>
+        <VideoPlayer stream={localStream} isMuted={true} label="You" isSpeaking={false} isVideoOff={!isCameraOn} isMirrored={!isScreenSharing} isHandRaised={isHoldingHands} isGhostMode={isGhostMode} />
       </motion.div>
-
       {peerIds.map((id) => (
-        <motion.div key={id} layout className="aspect-video relative shadow-2xl pointer-events-none">
-          <VideoPlayer 
-            stream={peers[id].stream || null} 
-            label={peers[id].user.username} 
-            isSpeaking={peers[id].isSpeaking}
-            isVideoOff={peers[id].isVideoOff}
-            isMuted={isGhostMode ? true : false} 
-            isMirrored={false}
-            isHandRaised={peers[id].isHandRaised} // Use peer state
-            isGhostMode={isGhostMode}
-          />
+        <motion.div key={id} layout className="aspect-video relative shadow-2xl">
+          <VideoPlayer stream={peers[id].stream || null} label={peers[id].user.username} isSpeaking={peers[id].isSpeaking} isVideoOff={peers[id].isVideoOff} isMuted={false} isMirrored={false} isHandRaised={peers[id].isHandRaised} isGhostMode={isGhostMode} />
         </motion.div>
       ))}
     </div>
